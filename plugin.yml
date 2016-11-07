@@ -1,0 +1,8 @@
+name: GKits
+main: me.Zacx.OKits.Main.Core
+version: 1.0
+description: Kits yo
+commands:
+   gkit:
+      description: Opens Kit Menu.
+      usage: /<command>
