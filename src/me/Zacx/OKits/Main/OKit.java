@@ -46,6 +46,7 @@ public class OKit {
 			cooldowns.put(uid, cooldowns.get(uid) - 1);
 			if (cooldowns.get(uid) <= 0)
 				cooldowns.remove(uid);
+			
 		}
 	}
 

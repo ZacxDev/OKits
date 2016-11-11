@@ -7,7 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -35,13 +39,13 @@ public class FileParser {
 
 			if (!folder.exists())
 				folder.mkdir();
-			if (!ranksFile.exists())
+			if (!ranksFile.exists()) {
 				ranksFile.createNewFile();
+			}
 
 			BufferedReader br = new BufferedReader(
 					new FileReader(c.getDataFolder() + "/kits.txt"));
 			String line = br.readLine();
-			line = br.readLine();
 
 			boolean readingKit = false;
 			boolean readingMeta = false;
@@ -162,77 +166,144 @@ public class FileParser {
 
 	}
 	
-	public void reg() {
-
-
+	public void writeKit(List<String> info) {
+		
 		File folder = c.getDataFolder();
-		File ranksFile = new File(c.getDataFolder() + "/uid.txt");
+		File kitsFile = new File(c.getDataFolder() + "/kits.txt");
 
 		try {
 
 			if (!folder.exists())
 				folder.mkdir();
-			if (!ranksFile.exists())
-				ranksFile.createNewFile();
-			else {
-				ranksFile.delete();
-				// ranksFile.createNewFile();
+			if (!kitsFile.exists()) {
+				kitsFile.createNewFile();
 			}
 
-			BufferedWriter out = new BufferedWriter(new FileWriter(ranksFile));
-
-			out.write("true");
-			out.newLine();
-			out.write(c.resID);
-			out.newLine();
-			out.write(c.key);
-			
-			
-			out.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	
-	}
-	
-	public void reg(String s) {
-
-
-		File folder = c.getDataFolder();
-		File ranksFile = new File(c.getDataFolder() + "/uid.txt");
-
-		try {
-
-			if (!folder.exists())
-				folder.mkdir();
-			if (!ranksFile.exists())
-				return;
 			
 			BufferedReader br = new BufferedReader(
-					new FileReader(c.getDataFolder() + "/uid.txt"));
-			String line = br.readLine().trim();
+					new FileReader(c.getDataFolder() + "/kits.txt"));
+			
+			BufferedWriter bw = new BufferedWriter(
+					new FileWriter(c.getDataFolder() + "/kits.temp"));
+			
+			String line = br.readLine();
+			
+			if (line == null) {
+				
+				bw.write("Name: l33t");
+				bw.newLine();
+				bw.write("Lore: insert bad joke");
+				bw.newLine();
+				bw.write("Item: STONE");
+				bw.newLine();
+				bw.write("Cooldown: 60");
+				bw.newLine();
+				bw.write("Items:");
+				bw.newLine();
+				
+				for (int n = 0; n < info.size(); n++) {
+					String item = info.get(n);
+					bw.write(item);
+					bw.newLine();
+				}
+				
+				bw.write("END");
+				bw.newLine();
+				
+			}
 			
 			while (line != null) {
 				
-				//System.out.println("read: " + line);
-				if (Boolean.parseBoolean(line)) {
-					//System.out.println("parsing");
-					c.registered = true;
-					line = br.readLine();
-					c.resID = line;
-					line = br.readLine();
-					c.key = line;
-				} else
+				bw.write(line);
+				bw.newLine();
+				line = br.readLine();
+				
+				if (line == null) {
+					
+					bw.write("Name: Unnamed Kit");
+					bw.newLine();
+					bw.write("Lore: insert bad joke");
+					bw.newLine();
+					bw.write("Item: STONE");
+					bw.newLine();
+					bw.write("Cooldown: 60");
+					bw.newLine();
+					bw.write("Items:");
+					bw.newLine();
+					
+					for (int n = 0; n < info.size(); n++) {
+						String item = info.get(n);
+						bw.write(item);
+						bw.newLine();
+					}
+					
+					bw.write("END");
+					bw.newLine();
 					break;
+				}
 				
 			}
-
 			
 			
-		} catch (Exception e) {
+			
+			bw.flush();
+			bw.close();
+			br.close();
+			
+			File og = new File(c.getDataFolder() + "/kits.txt");
+			Files.delete(og.toPath());
+			new File(c.getDataFolder() + "/kits.temp").renameTo(kitsFile);
+			
+		} catch(Exception e) {}
+		
+	}
+	
+	public void saveCooldowns() {
+		
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(c.getDataFolder() + "/cd.txt")));
+	
+			for (int i = 0; i < OKit.kits.size(); i++) {
+			OKit kit = OKit.kits.get(i);
+			List<UUID> uids = new LinkedList<UUID>(kit.cooldowns.keySet());
+			for (int n = 0; n < uids.size(); n++) {
+				bw.write(kit.name + ":" + uids.get(n).toString() + ":" + kit.cooldowns.get(uids.get(n)).toString());
+				bw.newLine();
+			}
+		}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
 	
+	public void readCooldowns() {
+		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(new File(c.getDataFolder() + "/cd.txt")));
+			String line = br.readLine();
+			
+			while(line != null) {
+				
+				String kn = line.substring(0, line.indexOf(":"));
+				OKit kit = OKit.getKit(kn);
+				
+				String uid = line.substring(line.indexOf(":") + 1, line.lastIndexOf(":"));
+				UUID uuid = UUID.fromString(uid);
+				
+				String cd = line.substring(line.lastIndexOf(":") + 1);
+				Long cdl = Long.parseLong(cd);
+				
+				kit.cooldowns.put(uuid, cdl);
+				
+				line = br.readLine();
+			}
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 }

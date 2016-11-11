@@ -1,15 +1,13 @@
 package me.Zacx.OKits.Main;
 
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -23,8 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import me.Zacx.OKits.Display.KitMenu;
 import me.Zacx.OKits.Files.FileParser;
 import me.Zacx.OKits.Files.Updater;
-import me.Zacx.OKits.jpaste.exceptions.PasteException;
-import me.Zacx.OKits.jpaste.pastebin.Pastebin;
+
 
 public class Core extends JavaPlugin implements Listener{
 
@@ -39,10 +36,9 @@ public class Core extends JavaPlugin implements Listener{
 	}
 	
 	public void onEnable() {
-		fp.reg("");
-		auth();
 		Updater.getLastUpdate();
 		fp.importKits();
+		fp.readCooldowns();
 		this.getServer().getPluginManager().registerEvents(this, this);
 		
 		
@@ -59,9 +55,9 @@ public class Core extends JavaPlugin implements Listener{
 			}
 		}, 0L, 20L);
 	}
-
+	
 	public void onDisable() {
-		fp.reg();
+		fp.saveCooldowns();
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd,
@@ -73,10 +69,16 @@ public class Core extends JavaPlugin implements Listener{
 			m.openKitMenu(p);
 		} else 
 			if (args[0].equalsIgnoreCase("create")) {
+				List<String> itemList = new LinkedList<String>();
 				for (int i = 0; i < p.getInventory().getContents().length; i++) {
 					ItemStack item = p.getInventory().getContents()[i];
-					
+					List<String> itemString = Access.itemStackToString(item);
+					for (int n = 0; n < itemString.size(); n++) {
+						System.out.println(itemString.get(n));
+						itemList.add(itemString.get(n));
+					}
 				}
+				fp.writeKit(itemList);
 			}
 		
 	}
@@ -94,62 +96,6 @@ public class Core extends JavaPlugin implements Listener{
 	
 	
 	public static String uid = "%%__USER__%%";
-	//public static String uid = "Zacx";
-	public boolean sts = true;
-	public boolean registered = false;
-	private URL check;
-	public String key;
-	     public void auth()
-	     {
-	       try
-	       {
-	    	   String devkey = "a3abc9e537764a5d0ad4f81e4e3fc952";
-//	    	   String un = "Zacx";
-//	    	   String pass = "Zachtheepic1";
-//	    	   
-//	    	   PastebinAccount acc = new PastebinAccount(devkey, un, pass);
-//	    	   acc.login();
-	    	   
-	    	   if (!registered) {
-	    		   System.out.println("Registering Licence...");
-	    		   resID = "OKITS-" + r.nextInt(1000000) + "-" + r.nextInt(1000000) + "-" + uid + "-" + r.nextInt(1000);
-	    		   check = Pastebin.pastePaste(devkey, resID, uid);
-	    		   key = check.toExternalForm().substring(check.toExternalForm().lastIndexOf("/") + 1);
-	    		   registered = true;
-	    		   fp.reg();
-	    	   } else {
-	    		   System.out.println("Checking Licence...");
-	    		   //check pastebin
-	    		   String content = Pastebin.getContents(key);
-	    		   if (!content.contains(resID)) {
-	    			   System.out.println("[Error] Fatal Error 0x17");
-	    			   this.getServer().getPluginManager().disablePlugin(this);
-	    		   }
-	    	   }
-	    		   //Pastebin.getContents(check.toExternalForm());
-	    		   //System.out.println(key);
-	    	   
-	    	   
-	    	   
-	       }
-	       catch (PasteException e) {
-			e.printStackTrace();
-		}
-	     }
-	    
-	     public void disableLeak()
-	     {
-	           System.out.println("Verification Failed.. Disabling.");
-	         
-	       getServer().getPluginManager().disablePlugin(this);
-	       sts = false;
-	     }
-	    
-	     public void disableNoInternet() {
-	    	 System.out.println(ChatColor.RED + "You don't have a valid internet connection, please connect to the internet for the plugin to work!");
-	         getServer().getPluginManager().disablePlugin(this);
-	         sts = false;
-	     }
 	
 	@EventHandler
 	public void onClick(InventoryClickEvent e) {

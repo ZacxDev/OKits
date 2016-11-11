@@ -15,12 +15,12 @@ public class EventHandle implements Listener {
 	}
 	
 	
-	@EventHandler
-	public void onJoin(PlayerJoinEvent e) {
-		Player p = e.getPlayer();
-		if (p.isOp() && c.up) {
-			p.sendMessage("§a[GKits] §bNew Update Available!");
-		}
-	}
+//	@EventHandler
+//	public void onJoin(PlayerJoinEvent e) {
+//		Player p = e.getPlayer();
+//		if (p.isOp() && c.up) {
+//			p.sendMessage("§a[GKits] §bNew Update Available!");
+//		}
+//	}
 	
 }
