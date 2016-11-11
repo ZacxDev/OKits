@@ -126,6 +126,15 @@ public class OKit {
 		return item;
 	}
 	
+	public ItemStack getGreenPane() {
+		ItemStack item = new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.GREEN.getData());
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(name);
+		item.setItemMeta(meta);
+		
+		return item;
+	}
+	
 	public static String parseCooldown(double i) {
 		double cd = i;
 		StringBuilder sb = new StringBuilder();
@@ -182,7 +191,9 @@ public class OKit {
 	}
 	
 	public Permission getPermission() {
-		return perm;
+		if (perm != null)
+			return perm;
+		return new Permission("gkits." + name.toLowerCase());
 	}
 	
 	public void setPermission() {

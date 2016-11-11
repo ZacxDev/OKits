@@ -8,16 +8,19 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.Zacx.OKits.Display.ItemMenu;
 import me.Zacx.OKits.Display.KitMenu;
 import me.Zacx.OKits.Files.FileParser;
 import me.Zacx.OKits.Files.Updater;
@@ -58,6 +61,7 @@ public class Core extends JavaPlugin implements Listener{
 	
 	public void onDisable() {
 		fp.saveCooldowns();
+		saveDefaultConfig();
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd,
@@ -67,8 +71,8 @@ public class Core extends JavaPlugin implements Listener{
 			if (args.length == 0) {
 			KitMenu m = new KitMenu(this);
 			m.openKitMenu(p);
-		} else 
-			if (args[0].equalsIgnoreCase("create")) {
+		} else if (args.length == 3) {
+			if (args[0].equalsIgnoreCase("create") && p.isOp()) {
 				List<String> itemList = new LinkedList<String>();
 				for (int i = 0; i < p.getInventory().getContents().length; i++) {
 					ItemStack item = p.getInventory().getContents()[i];
@@ -78,9 +82,11 @@ public class Core extends JavaPlugin implements Listener{
 						itemList.add(itemString.get(n));
 					}
 				}
-				fp.writeKit(itemList);
+				fp.writeKit(itemList, args[1], args[2]);
+				p.sendMessage("§aNew GKit named §b" + args[1] + " §awith cooldown §e" + OKit.parseCooldown(Double.parseDouble(args[2])));
 			}
-		
+		} else
+			p.sendMessage("§c/gkit create [name] [cooldown]");
 	}
 		return true;
 	}
@@ -105,7 +111,7 @@ public class Core extends JavaPlugin implements Listener{
 		KitMenu menu = null;
 		
 		if (e.getInventory().getName().equalsIgnoreCase("Kits")) {
-			if (item != null && item.getType() != Material.AIR && item.hasItemMeta()) {
+			if (item != null && item.getType() != Material.AIR ) {
 				
 				for (int i = 0; i < KitMenu.menus.size(); i++) {
 					menu = KitMenu.menus.get(i);
@@ -113,9 +119,11 @@ public class Core extends JavaPlugin implements Listener{
 						break;
 				}
 				
-				if (item.getType() != Material.STAINED_GLASS_PANE) {
-			OKit kit = OKit.getKit(e.getCurrentItem().getItemMeta().getDisplayName());
-			if (kit != null)
+				if (item.hasItemMeta() && OKit.getKit(item.getItemMeta().getDisplayName()) != null) {
+			OKit kit = OKit.getKit(item.getItemMeta().getDisplayName());
+			
+			if (e.getClick() == ClickType.LEFT) {
+			
 			if (!kit.isCoolingdown(p.getUniqueId())) {
 				if (p.hasPermission(kit.getPermission())) {
 				kit.giveItems(p);
@@ -124,8 +132,11 @@ public class Core extends JavaPlugin implements Listener{
 					p.sendMessage("§cYou do not have access to that kit!");
 			} else
 				p.sendMessage("§cThat Kit is Cooling Down!");
+				} else if (e.getClick() == ClickType.RIGHT) {
+					new ItemMenu(kit).open(p);
+				} 
 				} else {
-					if (item.getData().getData() == DyeColor.BLACK.getData()) {
+					if (item.getData().getData() == DyeColor.BLACK.getData() && item.hasItemMeta()) {
 						if (e.getSlot() == 30 && menu.pageIndex > 0) {
 							menu.pageIndex--;
 						} else if (e.getSlot() == 32 && menu.pageIndex < menu.pages.size() - 1) {
@@ -139,6 +150,7 @@ public class Core extends JavaPlugin implements Listener{
 			e.setCancelled(true);
 		}
 		}
+		
 	}
 	
 	@EventHandler

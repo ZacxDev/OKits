@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.MaterialData;
 
 import me.Zacx.OKits.Main.Core;
 import me.Zacx.OKits.Main.OKit;
@@ -120,12 +121,19 @@ public class FileParser {
 							} else if (s.contains("lore:")) {
 								v = s.substring(s.indexOf(":") + 1);
 								ArrayList<String> list = new ArrayList<String>();
-								list.add(v);
+								String[] lines = v.split("%n");
+								for (int n = 0; n < lines.length; n++) {
+									System.out.println(lines[n]);
+									list.add(lines[n].replaceAll("%n", ""));
+								}
 								meta.setLore(list);
 							} else if (s.contains("amount:")) {
 								v = s.substring(s.indexOf(":") + 1,
 										s.lastIndexOf("]"));
 								item.setAmount(Integer.parseInt(v));
+							} else if (s.contains("data:")) {
+								v = s.substring(s.indexOf(":") + 1);
+								item = new ItemStack(item.getType(), item.getAmount(), Byte.parseByte(v));
 							}
 							// System.out.println(v);
 						}
@@ -151,7 +159,7 @@ public class FileParser {
 				line = br.readLine();
 			}
 
-			if (line == null) {
+			if (line == null && OKit.kits.isEmpty() == false) {
 				OKit.kits.removeLast();
 				i--;
 			}
@@ -166,7 +174,7 @@ public class FileParser {
 
 	}
 	
-	public void writeKit(List<String> info) {
+	public void writeKit(List<String> info, String name, String cooldown) {
 		
 		File folder = c.getDataFolder();
 		File kitsFile = new File(c.getDataFolder() + "/kits.txt");
@@ -190,13 +198,13 @@ public class FileParser {
 			
 			if (line == null) {
 				
-				bw.write("Name: l33t");
+				bw.write("Name: " + name);
 				bw.newLine();
 				bw.write("Lore: insert bad joke");
 				bw.newLine();
 				bw.write("Item: STONE");
 				bw.newLine();
-				bw.write("Cooldown: 60");
+				bw.write("Cooldown: " + cooldown);
 				bw.newLine();
 				bw.write("Items:");
 				bw.newLine();
@@ -220,13 +228,13 @@ public class FileParser {
 				
 				if (line == null) {
 					
-					bw.write("Name: Unnamed Kit");
+					bw.write("Name: " + name);
 					bw.newLine();
 					bw.write("Lore: insert bad joke");
 					bw.newLine();
 					bw.write("Item: STONE");
 					bw.newLine();
-					bw.write("Cooldown: 60");
+					bw.write("Cooldown: " + cooldown);
 					bw.newLine();
 					bw.write("Items:");
 					bw.newLine();

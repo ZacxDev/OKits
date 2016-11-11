@@ -37,11 +37,12 @@ public class Access {
 	            if (is.getItemMeta().hasLore()) {
 	                for (int i = 0; i < is.getItemMeta().getLore().size(); i++) {
 	                    String s = is.getItemMeta().getLore().get(i);
-	                    lore.append(s + " ");
+	                    lore.append(s + "%n");
 	                }
 	                sb.append("lore:" + lore.toString().trim() + ",");
 	            }
 	    }
+	        sb.append("data:" + is.getData().getData() + ",");
 	        sb.append("amount:" + is.getAmount() + "]");
 	        r.add(sb.toString().replaceAll("§", "&"));
 	       
